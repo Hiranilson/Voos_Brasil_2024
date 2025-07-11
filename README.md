@@ -126,4 +126,4 @@ http://localhost:8501
 
 ## 👨‍🏫 Sobre o Projeto
 
-Este projeto foi desenvolvido por Hiranilson Andrade como parte da 3ª Avaliação da disciplina de Análise de Redes. Ele integra aspectos computacionais, geográficos e teóricos da Análise de Redes Complexas aplicados à malha aérea brasileira de 2024.
+Este projeto foi desenvolvido por **Hiranilson Andrade** como parte da **3ª Avaliação da disciplina de Análise de Redes**. Ele integra aspectos computacionais, geográficos e teóricos da Análise de Redes Complexas aplicados à malha aérea brasileira de 2024.
