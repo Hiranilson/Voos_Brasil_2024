@@ -11,6 +11,7 @@ A interface foi desenvolvida com **Streamlit**, utilizando visualização geogr�
 ## 🌍 Aplicação Interativa
 
 A aplicação foi desenvolvida com Streamlit e permite explorar a rede de voos por meio de um mapa geográfico interativo (Plotly) com filtros por tipo de voo e por comunidades detectadas com Louvain.
+
 ✅  [Acesse a aplicação online](https://voosbrasil2024-m4xvzmdkaepgwukvnljy2d.streamlit.app/)
 
 ---
