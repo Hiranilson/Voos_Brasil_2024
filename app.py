@@ -4,11 +4,11 @@ import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
 import pickle
-import community as community_louvain
+import community.community_louvain as community_louvain
 
 # --- Configuração da página ---
 st.set_page_config(page_title="Rede de Voos 2024", layout="wide")
-st.title("✈️ Mapa Interativo da Rede de Voos no Brasil (2024)")
+st.markdown("<h1 style='text-align: center;'>✈️ Rede de Voos no Brasil (2024)</h1>", unsafe_allow_html=True)
 
 # === Carregamento da rede ===
 @st.cache_data
@@ -20,27 +20,38 @@ G = carregar_grafo("rede_voos_brasil_2024.gpickle")
 pos = nx.get_node_attributes(G, 'pos')
 
 # === Comunidades Louvain ===
-partition = community_louvain.best_partition(G.to_undirected())
+with open("comunidades_louvain.pkl", "rb") as f:
+    partition = pickle.load(f)
+
 nx.set_node_attributes(G, partition, 'comunidade')
-lista_comunidades = sorted(set(partition.values()))
 
 # === Sidebar ===
 st.sidebar.markdown("### Filtros")
 tipo_voo = st.sidebar.selectbox("Tipo de Voo:", ["Todos", "Nacional", "Internacional"])
-comunidade = st.sidebar.selectbox("Comunidade Louvain:", ["Todas"] + lista_comunidades)
+comunidades_disponiveis = sorted(set(partition.values()))  # garante ordem
+comunidade_opcoes = ["Todas"] + [str(c) for c in comunidades_disponiveis]  # todos como string
+comunidade = st.sidebar.selectbox("Comunidade Louvain:", comunidade_opcoes)
+
+# Converte a comunidade selecionada para inteiro, se aplicável
+if comunidade != "Todas":
+    comunidade = int(comunidade)
 
 # === Filtragem de arestas ===
 arestas_visiveis = []
 for u, v, d in G.edges(data=True):
     tipo = d.get("tipo", "Nacional")
-    mesma_comunidade = (partition.get(u) == partition.get(v))
+    com_u = partition.get(u)
+    com_v = partition.get(v)
 
+    # Aplica o filtro de tipo de voo
     if tipo_voo != "Todos" and tipo != tipo_voo:
         continue
-    if comunidade != "Todas" and not mesma_comunidade:
-        continue
-    if comunidade != "Todas" and partition.get(u) != comunidade:
-        continue
+
+    # Aplica o filtro de comunidade (somente nós da comunidade selecionada)
+    if comunidade != "Todas":
+        if com_u != comunidade or com_v != comunidade:
+            continue
+
     arestas_visiveis.append((u, v))
 
 # === Construção das linhas das arestas ===
@@ -73,10 +84,10 @@ graus = dict(G.degree())
 centralidade = nx.degree_centrality(G)
 
 graus_arr = np.array([graus.get(n, 0) for n in cidades_visiveis])
-if graus_arr.ptp() == 0:
+if np.ptp(graus_arr) == 0:
     tamanhos = np.full_like(graus_arr, 10)
 else:
-    tamanhos = 5 + 20 * (graus_arr - graus_arr.min()) / (graus_arr.max() - graus_arr.min())
+    tamanhos = 5 + 20 * (graus_arr - graus_arr.min()) / np.ptp(graus_arr)
 
 trace_nodes = go.Scattergeo(
     lon=[pos[n][0] for n in cidades_visiveis],
@@ -102,7 +113,6 @@ trace_nodes = go.Scattergeo(
 # === Layout ===
 fig = go.Figure(data=edge_traces + [trace_nodes])
 fig.update_layout(
-    title=dict(text='Rede de Voos do Brasil em 2024', x=0.5, font=dict(size=24)),
     geo=dict(
         projection_type='equirectangular',
         showland=True,
