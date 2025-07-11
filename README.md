@@ -62,6 +62,7 @@ A interface foi desenvolvida com **Streamlit**, com visualização geográfica e
 ---
 
 ## 📁 Estrutura do Projeto
+
 ```
 📦 rede-voos-2024
 ┣ 📜 app.py ← Código principal da aplicação
@@ -80,22 +81,30 @@ A interface foi desenvolvida com **Streamlit**, com visualização geográfica e
 ```bash
 git clone https://github.com/Hiranilson/rede-voos-2024.git
 cd rede-voos-2024
+```
 
 2. Crie e ative um ambiente virtual (opcional, mas recomendado):
+   
 ```
 python -m venv venv
 source venv/bin/activate      # Linux/macOS
 venv\Scripts\activate         # Windows
 ```
+
 3. Instale as dependências:
+   
 ```
 pip install -r requirements.txt
 ```
+
 4. Execute a aplicação:
+   
 ```
 streamlit run app.py
 ```
+
 5. Acesse no navegador:
+   
 ```
 http://localhost:8501
 ```
