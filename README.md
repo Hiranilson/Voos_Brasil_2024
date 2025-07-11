@@ -51,7 +51,7 @@ O notebook `Analise_de_Redes_AV3.ipynb` contém uma análise técnica detalhada 
 - Atribuição de cores às comunidades detectadas.
 - Salvamento em `comunidades_louvain.pkl`.
 
-### 6. 🌍 Visualizações
+### 6. 🌍 Visualizações e Análise de Robustez e Resiliência
 - **Pyvis**: grafo interativo com painel de física e métricas nos nós.
 - **Cartopy**: rede plotada sobre mapa global com long/lat.
 - **Plotly (ScatterGeo)**:
@@ -59,6 +59,19 @@ O notebook `Analise_de_Redes_AV3.ipynb` contém uma análise técnica detalhada 
   - Tamanho proporcional ao grau.
   - Cor relacionada à centralidade.
   - Hover com grau e centralidade por cidade.
+- **Histograma de Grau**: visualiza a distribuição do número de conexões por cidade, evidenciando a presença de hubs altamente conectados.
+- **Simulação de Robustez**:
+  - Falhas aleatórias vs. ataques direcionados (por grau).
+  - Análise do impacto na conectividade da rede (fragmentação do maior componente).
+
+ ## 7. 📌 Conclusões
+
+- A rede de voos brasileira em 2024 apresenta uma estrutura altamente centralizada, com poucos hubs dominando as conexões.
+- A conectividade regional é forte, com um bom clustering local e pequeno diâmetro.
+- Direcionalmente, a rede é fragmentada, com poucas conexões bidirecionais completas, sugerindo uma malha assimétrica.
+- A presença de vários componentes fortemente conectados pequenos indica que muitos fluxos de ida e volta não são simétricos.
+- A rede é eficiente e otimizada, mas potencialmente vulnerável a falhas nos hubs principais (ex: São Paulo, Campinas).
+- A estrutura reflete uma topologia de rede logística típica, com equilíbrio entre eficiência e especialização regional.
 
 ---
 
