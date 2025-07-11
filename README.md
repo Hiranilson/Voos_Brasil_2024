@@ -70,6 +70,7 @@ A interface foi desenvolvida com **Streamlit**, com visualização geográfica e
 ┣ 📜 requirements.txt ← Dependências do projeto
 ┗ 📜 README.md ← Este documento
 ```
+
 ---
 
 ## 💻 Como executar localmente
@@ -98,6 +99,8 @@ streamlit run app.py
 ```
 http://localhost:8501
 ```
+
+---
 
 ## ✨ Autor
 
