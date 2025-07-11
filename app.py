@@ -1,203 +1,122 @@
 import streamlit as st
 import networkx as nx
-import pickle
 import pandas as pd
 import numpy as np
-from pyvis.network import Network
 import plotly.graph_objects as go
-import matplotlib.pyplot as plt
-import streamlit.components.v1 as components
-import community as community_louvain  # python-louvain
+import pickle
+import community as community_louvain
 
-# Configuração da página
+# --- Configuração da página ---
 st.set_page_config(page_title="Rede de Voos 2024", layout="wide")
-st.title("✈️ Análise Interativa da Rede de Voos no Brasil (2024)")
+st.title("✈️ Mapa Interativo da Rede de Voos no Brasil (2024)")
 
 # === Carregamento da rede ===
+@st.cache_data
 def carregar_grafo(path):
-    try:
-        # Tente pela função oficial do networkx
-        G = nx.read_gpickle(path)
-    except AttributeError:
-        # Se não funcionar, tenta com pickle
-        with open(path, 'rb') as f:
-            G = pickle.load(f)
-    return G
+    with open(path, 'rb') as f:
+        return pickle.load(f)
 
 G = carregar_grafo("rede_voos_brasil_2024.gpickle")
 pos = nx.get_node_attributes(G, 'pos')
 
 # === Comunidades Louvain ===
-G_undirected = G.to_undirected()  # converte para grafo não direcionado
-partition = community_louvain.best_partition(G_undirected)
+partition = community_louvain.best_partition(G.to_undirected())
 nx.set_node_attributes(G, partition, 'comunidade')
 lista_comunidades = sorted(set(partition.values()))
 
-# === Sidebar com filtros ===
-aba = st.sidebar.radio("Visualização:", [
-    "🔗 Pyvis", 
-    "🗽 Mapa Interativo", 
-    "📊 Análise da Sub-Rede Filtrada"
-])
+# === Sidebar ===
+st.sidebar.markdown("### Filtros")
+tipo_voo = st.sidebar.selectbox("Tipo de Voo:", ["Todos", "Nacional", "Internacional"])
+comunidade = st.sidebar.selectbox("Comunidade Louvain:", ["Todas"] + lista_comunidades)
 
-tipo_voo_selecionado = st.sidebar.selectbox(
-    "Tipo de Voo:",
-    ["Todos", "Nacional", "Internacional"]
-)
-
-comunidade_selecionada = st.sidebar.selectbox(
-    "Comunidade Louvain:",
-    ["Todas"] + lista_comunidades
-)
-
-# === Gera sub-rede com base nos filtros ===
-if comunidade_selecionada == "Todas":
-    nos_filtrados = list(G.nodes)
-else:
-    nos_filtrados = [n for n, d in G.nodes(data=True) if d.get('comunidade') == comunidade_selecionada]
-
-arestas_filtradas = []
+# === Filtragem de arestas ===
+arestas_visiveis = []
 for u, v, d in G.edges(data=True):
-    if u in nos_filtrados and v in nos_filtrados:
-        tipo = d.get('tipo', 'Nacional')
-        if tipo_voo_selecionado == "Todos" or tipo == tipo_voo_selecionado:
-            arestas_filtradas.append((u, v))
+    tipo = d.get("tipo", "Nacional")
+    mesma_comunidade = (partition.get(u) == partition.get(v))
 
-G_sub = G.edge_subgraph(arestas_filtradas).copy()
+    if tipo_voo != "Todos" and tipo != tipo_voo:
+        continue
+    if comunidade != "Todas" and not mesma_comunidade:
+        continue
+    if comunidade != "Todas" and partition.get(u) != comunidade:
+        continue
+    arestas_visiveis.append((u, v))
 
-# === Aba Pyvis ===
-if aba == "🔗 Pyvis":
-    st.markdown("#### Visualização da Rede com Pyvis")
-    net = Network(height="700px", width="100%", bgcolor="#ffffff", font_color="black")
-    net.from_nx(G_sub)
-    for node in net.nodes:
-        cidade = node['id']
-        com = G.nodes[cidade].get('comunidade', 'N/A')
-        node['title'] = f"{cidade}<br>Comunidade: {com}"
-        node['color'] = f"hsl({com * 35 % 360}, 70%, 65%)"
-    net.save_graph("pyvis_rede_voos.html")
-    with open("pyvis_rede_voos.html", "r", encoding="utf-8") as f:
-        html = f.read()
-        components.html(html, height=750, scrolling=True)
-
-# === Aba Mapa Plotly ===
-elif aba == "🗽 Mapa Interativo":
-    st.markdown("#### Mapa Interativo com Plotly")
-    edge_traces = []
-    for u, v in G_sub.edges():
-        if u in pos and v in pos:
-            tipo = G.edges[u, v].get('tipo', 'Nacional')
-            cor = 'blue' if tipo == 'Nacional' else 'green'
-            lon1, lat1 = pos[u]
-            lon2, lat2 = pos[v]
-            edge_traces.append(go.Scattergeo(
-                lon=[lon1, lon2, None],
-                lat=[lat1, lat2, None],
-                mode='lines',
-                line=dict(width=1, color=cor),
-                hoverinfo='text',
-                text=f'{u} → {v} ({tipo})',
-                showlegend=False
-            ))
-    edge_traces.append(go.Scattergeo(lon=[None], lat=[None], mode='lines', line=dict(width=2, color='blue'), name='Voo Nacional'))
-    edge_traces.append(go.Scattergeo(lon=[None], lat=[None], mode='lines', line=dict(width=2, color='green'), name='Voo Internacional'))
-
-    cidades = list(G_sub.nodes())
-    graus = np.array([G_sub.degree(n) for n in cidades])
-    if graus.ptp() == 0:
-        graus_normalizados = np.full_like(graus, 10)
-    else:
-        graus_normalizados = 5 + 20 * (graus - graus.min()) / (graus.max() - graus.min())
-
-    centrality = nx.degree_centrality(G_sub)
-    centrality_values = [centrality.get(c, 0) for c in cidades]
-    node_trace = go.Scattergeo(
-        lon=[pos[c][0] for c in cidades],
-        lat=[pos[c][1] for c in cidades],
-        text=cidades,
-        hovertext=[f"{c}<br>Degree: {G_sub.degree(c)}<br>Centralidade: {centrality.get(c):.3f}" for c in cidades],
-        mode='markers+text',
-        marker=dict(
-            size=graus_normalizados.tolist(),
-            color=centrality_values,
-            colorscale='YlOrRd',
-            colorbar=dict(title='Centralidade', x=0.92, len=0.5),
-            line=dict(width=0.5, color='black')
-        ),
-        textposition='top center',
-        hoverinfo='text',
-        name='Cidades'
-    )
-
-    fig = go.Figure(data=edge_traces + [node_trace])
-    fig.update_layout(
-        title=dict(text='Rede de Voos do Brasil em 2024', x=0.5, font=dict(size=24)),
-        geo=dict(projection_type='equirectangular', showland=True, landcolor='rgb(217, 217, 217)', oceancolor='rgb(150, 200, 255)', lakecolor='rgb(255, 255, 255)', showocean=True, showcountries=True, countrycolor="RebeccaPurple"),
-        showlegend=True,
-        height=800,
-        margin=dict(l=0, r=0, t=50, b=0)
-    )
-    st.plotly_chart(fig, use_container_width=True)
-
-# === Aba Análise Estrutural ===
-elif aba == "📊 Análise da Sub-Rede Filtrada":
-    st.header("📊 Métricas Estruturais da Sub-Rede Filtrada")
-
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        densidade = nx.density(G_sub)
-        st.metric("Densidade", f"{densidade:.4f}")
-    with col2:
-        assort = nx.degree_assortativity_coefficient(G_sub)
-        st.metric("Assortatividade", f"{assort:.4f}")
-    with col3:
-        clustering = nx.average_clustering(G_sub)
-        st.metric("Clustering", f"{clustering:.4f}")
-
-    col4, col5 = st.columns(2)
-    with col4:
-        scc = nx.number_strongly_connected_components(G_sub) if G_sub.is_directed() else "-"
-        st.metric("Componentes Fortemente Conectados", scc)
-    with col5:
-        wcc = nx.number_connected_components(G_sub) if not G_sub.is_directed() else "-"
-        st.metric("Componentes Fracamente Conectados", wcc)
-
-    # Histograma de Grau
-    st.subheader("🎯 Distribuição de Grau dos Nós")
-    graus = [G_sub.degree(n) for n in G_sub.nodes()]
-    fig_grau, ax = plt.subplots()
-    ax.hist(graus, bins=20, color='skyblue', edgecolor='black')
-    ax.set_title("Distribuição de Grau dos Nós")
-    ax.set_xlabel("Grau")
-    ax.set_ylabel("Frequência")
-    st.pyplot(fig_grau)
-
-    # Centralidade
-    st.subheader("🏆 Centralidade dos Nós")
-    metrica = st.selectbox("Selecione a Métrica de Centralidade", ["Degree", "Closeness", "Betweenness", "Eigenvector"])
-
-    if metrica == "Degree":
-        centralidade = nx.degree_centrality(G_sub)
-    elif metrica == "Closeness":
-        centralidade = nx.closeness_centrality(G_sub)
-    elif metrica == "Betweenness":
-        centralidade = nx.betweenness_centrality(G_sub)
-    elif metrica == "Eigenvector":
-        try:
-            centralidade = nx.eigenvector_centrality(G_sub)
-        except nx.NetworkXException:
-            st.error("Erro: A sub-rede atual não permite cálculo de centralidade por autovetor.")
-            centralidade = {}
-
-    if centralidade:
-        df_cent = pd.DataFrame(centralidade.items(), columns=["Nó", metrica])
-        df_cent = df_cent.sort_values(by=metrica, ascending=False).reset_index(drop=True)
-        st.dataframe(df_cent, height=300)
-
-        fig_cent = go.Figure(go.Bar(
-            x=df_cent["Nó"][:10],
-            y=df_cent[metrica][:10],
-            marker_color='royalblue'
+# === Construção das linhas das arestas ===
+edge_traces = []
+for u, v in arestas_visiveis:
+    if u in pos and v in pos:
+        lon1, lat1 = pos[u]
+        lon2, lat2 = pos[v]
+        tipo = G.edges[u, v].get('tipo', 'Nacional')
+        cor = 'blue' if tipo == 'Nacional' else 'green'
+        edge_traces.append(go.Scattergeo(
+            lon=[lon1, lon2, None],
+            lat=[lat1, lat2, None],
+            mode='lines',
+            line=dict(width=1, color=cor),
+            hoverinfo='text',
+            text=f'{u} → {v} ({tipo})',
+            showlegend=False
         ))
-        fig_cent.update_layout(title=f"Top 10 Nós por {metrica}", height=400)
-        st.plotly_chart(fig_cent, use_container_width=True)
+
+# Legenda manual
+edge_traces += [
+    go.Scattergeo(lon=[None], lat=[None], mode='lines', line=dict(width=2, color='blue'), name='Voo Nacional'),
+    go.Scattergeo(lon=[None], lat=[None], mode='lines', line=dict(width=2, color='green'), name='Voo Internacional'),
+]
+
+# === Nós ===
+cidades_visiveis = set([n for u, v in arestas_visiveis for n in (u, v)])
+graus = dict(G.degree())
+centralidade = nx.degree_centrality(G)
+
+graus_arr = np.array([graus.get(n, 0) for n in cidades_visiveis])
+if graus_arr.ptp() == 0:
+    tamanhos = np.full_like(graus_arr, 10)
+else:
+    tamanhos = 5 + 20 * (graus_arr - graus_arr.min()) / (graus_arr.max() - graus_arr.min())
+
+trace_nodes = go.Scattergeo(
+    lon=[pos[n][0] for n in cidades_visiveis],
+    lat=[pos[n][1] for n in cidades_visiveis],
+    text=[n for n in cidades_visiveis],
+    hovertext=[
+        f"{n}<br>Degree: {graus.get(n)}<br>Centralidade: {centralidade.get(n):.3f}<br>Comunidade: {partition.get(n)}"
+        for n in cidades_visiveis
+    ],
+    mode='markers+text',
+    marker=dict(
+        size=tamanhos.tolist(),
+        color=[centralidade[n] for n in cidades_visiveis],
+        colorscale='YlOrRd',
+        colorbar=dict(title='Centralidade', x=0.92, len=0.5),
+        line=dict(width=0.5, color='black')
+    ),
+    textposition='top center',
+    hoverinfo='text',
+    name='Cidades'
+)
+
+# === Layout ===
+fig = go.Figure(data=edge_traces + [trace_nodes])
+fig.update_layout(
+    title=dict(text='Rede de Voos do Brasil em 2024', x=0.5, font=dict(size=24)),
+    geo=dict(
+        projection_type='equirectangular',
+        showland=True,
+        landcolor='rgb(217, 217, 217)',
+        oceancolor='rgb(150, 200, 255)',
+        lakecolor='rgb(255, 255, 255)',
+        showocean=True,
+        showcountries=True,
+        countrycolor="RebeccaPurple"
+    ),
+    showlegend=True,
+    height=800,
+    margin=dict(l=0, r=0, t=50, b=0)
+)
+
+# === Exibe no app ===
+st.plotly_chart(fig, use_container_width=True)
