@@ -65,11 +65,11 @@ A interface foi desenvolvida com **Streamlit**, com visualização geográfica e
 
 ```
 📦 rede-voos-2024
-┣ 📜 Analise_de_Redes_AV3.ipynb ← Notebook com uma análise exploratória e estrutural da rede
-┣ 📜 app.py ← Código principal da aplicação
-┣ 📜 rede_voos_brasil_2024.gpickle ← Grafo salvo com coordenadas e atributos
-┣ 📜 requirements.txt ← Dependências do projeto
-┗ 📜 README.md ← Este documento
+┣ 📜 Analise_de_Redes_AV3.ipynb       ← Notebook com uma análise exploratória e estrutural da rede
+┣ 📜 app.py                           ← Código principal da aplicação
+┣ 📜 rede_voos_brasil_2024.gpickle    ← Grafo salvo com coordenadas e atributos
+┣ 📜 requirements.txt                 ← Dependências do projeto
+┗ 📜 README.md                        ← Este documento
 ```
 
 ---
