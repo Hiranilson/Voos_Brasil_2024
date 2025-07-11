@@ -14,7 +14,17 @@ st.set_page_config(page_title="Rede de Voos 2024", layout="wide")
 st.title("✈️ Análise Interativa da Rede de Voos no Brasil (2024)")
 
 # === Carregamento da rede ===
-G = nx.read_gpickle("rede_voos_brasil_2024.gpickle")
+def carregar_grafo(path):
+    try:
+        # Tente pela função oficial do networkx
+        G = nx.read_gpickle(path)
+    except AttributeError:
+        # Se não funcionar, tenta com pickle
+        with open(path, 'rb') as f:
+            G = pickle.load(f)
+    return G
+
+G = carregar_grafo("rede_voos_brasil_2024.gpickle")
 pos = nx.get_node_attributes(G, 'pos')
 
 # === Comunidades Louvain ===
