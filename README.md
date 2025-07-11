@@ -65,7 +65,6 @@ O notebook `Analise_de_Redes_AV3.ipynb` contém uma análise técnica detalhada 
   - Análise do impacto na conectividade da rede (fragmentação do maior componente).
 
  ## 7. 📌 Conclusões
-
 - A rede de voos brasileira em 2024 apresenta uma estrutura altamente centralizada, com poucos hubs dominando as conexões.
 - A conectividade regional é forte, com um bom clustering local e pequeno diâmetro.
 - Direcionalmente, a rede é fragmentada, com poucas conexões bidirecionais completas, sugerindo uma malha assimétrica.
