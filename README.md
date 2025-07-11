@@ -44,7 +44,7 @@ O notebook `Analise_de_Redes_AV3.ipynb` contém uma análise técnica detalhada 
 - Proximidade (Closeness)
 - Intermediação (Betweenness)
 - Autovetor (Eigenvector)
-- Visualização com histograma de graus e grafo com atributos visuais.
+- Visualização com histograma de graus.
 
 ### 5. 🧩 Detecção de Comunidades
 - Algoritmo de Louvain aplicado à versão não-direcionada da rede.
