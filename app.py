@@ -130,3 +130,38 @@ fig.update_layout(
 
 # === Exibe no app ===
 st.plotly_chart(fig, use_container_width=True)
+
+# === Métricas ===
+
+st.markdown("## 📊 Métricas Estruturais da Rede")
+
+# Calcula as métricas para o grafo filtrado (subgrafo)
+G_sub = nx.DiGraph()
+G_sub.add_edges_from(arestas_visiveis)
+
+# Densidade
+densidade = nx.density(G_sub)
+
+# Assortatividade pelo grau
+assort = nx.degree_assortativity_coefficient(G_sub)
+
+# Clustering médio
+clustering = nx.average_clustering(G_sub)
+
+# Componentes fortemente conectados (se direcionado, senão mostra '-')
+scc = nx.number_strongly_connected_components(G_sub)
+
+# Componentes fracamente conectados (se não direcionado, senão mostra '-')
+wcc = nx.number_weakly_connected_components(G_sub)
+
+# Organiza as métricas em colunas (pode ajustar a quantidade de colunas)
+col1, col2, col3 = st.columns(3)
+col4, col5 = st.columns(2)
+
+col1.metric("Densidade", f"{densidade:.4f}")
+col2.metric("Assortatividade", f"{assort:.4f}")
+col3.metric("Clustering", f"{clustering:.4f}")
+col4.metric("Componentes Fortemente Conectados", scc)
+col5.metric("Componentes Fracamente Conectados", wcc)
+
+st.caption("Desenvolvido por Hiranilson Andrade ✨")
