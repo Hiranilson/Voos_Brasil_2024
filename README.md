@@ -1,4 +1,4 @@
-# ✈️ Análise Interativa da Rede de Voos no Brasil (2024)
+# ✈️ Análise de Rede dos Voos Realizados no Brasil em 2024
 
 Este projeto implementa uma aplicação interativa para **análise da malha aérea brasileira em 2024**, utilizando grafos para representar as conexões entre cidades por voos nacionais e internacionais. O repositório combina uma aplicação interativa em Streamlit com um notebook de análise exploratória e visualização de rede, ambos baseados em dados reais da ANAC, OpenFlights e GeoNames.
 
