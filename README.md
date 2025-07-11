@@ -15,7 +15,7 @@ A interface foi desenvolvida com **Streamlit**, com visualização geográfica e
 ## 🌍 Aplicação Online (Streamlit Cloud)
 
 ✅ Acesse aqui:  
-[https://rede-voos-2024.streamlit.app](https://rede-voos-2024.streamlit.app)
+[https://voosbrasil2024-m4xvzmdkaepgwukvnljy2d.streamlit.app/](https://voosbrasil2024-m4xvzmdkaepgwukvnljy2d.streamlit.app/)
 
 ---
 
@@ -50,14 +50,13 @@ A interface foi desenvolvida com **Streamlit**, com visualização geográfica e
 
 ## 🧠 Tecnologias utilizadas
 
-- Python 3
 - Streamlit
-- NetworkX
+- Networkx
 - Plotly
-- Pyvis
-- Matplotlib
 - Pandas
-- Python-Louvain
+- Numpy
+- Community
+- Python-louvain
 
 ---
 
