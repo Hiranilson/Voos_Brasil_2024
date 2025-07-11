@@ -1,5 +1,6 @@
 import streamlit as st
 import networkx as nx
+import pickle
 import pandas as pd
 import numpy as np
 from pyvis.network import Network
