@@ -79,7 +79,7 @@ A interface foi desenvolvida com **Streamlit**, com visualização geográfica e
 1. Clone o repositório:
 
 ```bash
-git clone https://github.com/Hiranilson/rede-voos-2024.git
+git clone https://github.com/Hiranilson/Voos_Brasil_2024.git
 cd rede-voos-2024
 ```
 
