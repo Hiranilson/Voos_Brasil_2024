@@ -28,7 +28,8 @@ G = carregar_grafo("rede_voos_brasil_2024.gpickle")
 pos = nx.get_node_attributes(G, 'pos')
 
 # === Comunidades Louvain ===
-partition = community_louvain.best_partition(G)
+G_undirected = G.to_undirected()  # converte para grafo não direcionado
+partition = community_louvain.best_partition(G_undirected)
 nx.set_node_attributes(G, partition, 'comunidade')
 lista_comunidades = sorted(set(partition.values()))
 
